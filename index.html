@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUESS THE COSPLAY</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-dark: #0b0b12;
+    --panel-bg: #161625;
+    --neon-blue: #00f3ff;
+    --neon-pink: #ff00ea;
+    --neon-green: #39ff14;
+    --neon-red: #ff073a;
+    --text-main: #ffffff;
+    --boys-color: #00f3ff;
+    --girls-color: #ff00ea;
+  }
+
+  * { 
+    box-sizing: border-box; 
+    font-family: 'Roboto', sans-serif;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    position: relative;
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(255, 0, 234, 0.05), transparent 25%);
+  }
+
+  /* Particles Background */
+  #particles {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  .header-banner {
+    background-color: rgba(11, 11, 18, 0.9);
+    border-bottom: 2px solid var(--neon-pink);
+    padding: 15px 20px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255, 0, 234, 0.3);
+    z-index: 10;
+  }
+
+  .header-banner h1 {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-pink);
+  }
+
+  /* Scoreboard Layout */
+  .scoreboard-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    z-index: 10;
+    flex-wrap: wrap;
+  }
+
+  .team-card {
+    background: var(--panel-bg);
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 15px 20px;
+    text-align: center;
+    width: 280px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0.6;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .team-card h2 {
+    font-family: 'Orbitron', sans-serif;
+    margin: 0 0 10px 0;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+  }
+
+  .team-card .score {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  /* Progress Bar */
+  .progress-bg {
+    background: #222;
+    height: 10px;
+    width: 100%;
+    border-radius: 5px;
+    margin-top: 15px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.5s ease-out;
+  }
+
+  /* Active Turn Highlighting */
+  .team-card.active-turn {
+    opacity: 1;
+    transform: scale(1.08) translateY(-5px);
+  }
+  #team-boys.active-turn {
+    border-color: var(--boys-color);
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.4), inset 0 0 10px rgba(0, 243, 255, 0.2);
+  }
+  #team-girls.active-turn {
+    border-color: var(--girls-color);
+    box-shadow: 0 0 25px rgba(255, 0, 234, 0.4), inset 0 0 10px rgba(255, 0, 234, 0.2);
+  }
+
+  #team-boys h2, #score-boys { color: var(--boys-color); text-shadow: 0 0 8px var(--boys-color); }
+  #team-girls h2, #score-girls { color: var(--girls-color); text-shadow: 0 0 8px var(--girls-color); }
+  #team-boys .progress-fill { background: var(--boys-color); box-shadow: 0 0 10px var(--boys-color); }
+  #team-girls .progress-fill { background: var(--girls-color); box-shadow: 0 0 10px var(--girls-color); }
+
+  /* Main Game Area */
+  .game-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 20px 40px;
+    z-index: 10;
+  }
+
+  .turn-announcer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 20px;
+    padding: 10px 40px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #000;
+    box-shadow: 0 0 15px currentColor;
+    transition: all 0.3s ease;
+  }
+
+  /* Hero Image Frame */
+  .image-frame {
+    background-color: #000;
+    border: 4px solid #444;
+    border-radius: 12px;
+    padding: 5px;
+    margin-bottom: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    position: relative;
+    max-width: 400px;
+    width: 100%;
+    height: 480px; 
+    transition: border-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .active-boys-frame { border-color: var(--boys-color) !important; box-shadow: 0 0 20px rgba(0, 243, 255, 0.3) !important; }
+  .active-girls-frame { border-color: var(--girls-color) !important; box-shadow: 0 0 20px rgba(255, 0, 234, 0.3) !important; }
+
+  .image-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    object-position: top; 
+    display: block;
+    border-radius: 8px;
+  }
+
+  .hero-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  }
+
+  /* Action Buttons Grid */
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .action-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 20px 15px;
+    background: rgba(22, 22, 37, 0.8);
+    border: 2px solid #444;
+    border-radius: 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    color: white;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: 0.5s;
+  }
+
+  .action-btn:hover:not(:disabled) {
+    border-color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+  }
+  
+  .action-btn:hover:not(:disabled)::before {
+    left: 100%;
+  }
+
+  .action-btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .btn-correct { background-color: rgba(57, 255, 20, 0.2) !important; border-color: var(--neon-green) !important; box-shadow: 0 0 15px var(--neon-green) !important; color: var(--neon-green) !important; }
+  .btn-wrong { background-color: rgba(255, 7, 58, 0.2) !important; border-color: var(--neon-red) !important; box-shadow: 0 0 15px var(--neon-red) !important; color: var(--neon-red) !important; }
+
+  /* Feedback Overlay */
+  #feedback-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    background: rgba(0,0,0,0.85);
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  #feedback-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 4rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  #feedback-desc {
+    font-size: 1.5rem;
+    color: #fff;
+    animation: fadeIn 0.5s ease forwards 0.3s;
+    opacity: 0;
+  }
+
+  .text-correct { color: var(--neon-green); text-shadow: 0 0 20px var(--neon-green); }
+  .text-wrong { color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
+
+  /* Animations */
+  @keyframes flashCorrect { 0%, 100% { background-color: var(--bg-dark); } 50% { background-color: rgba(57, 255, 20, 0.2); } }
+  @keyframes flashWrong { 0%, 100% { background-color: var(--bg-dark); } 50% { background-color: rgba(255, 7, 58, 0.2); } }
+  .flash-correct { animation: flashCorrect 0.6s ease; }
+  .flash-wrong { animation: flashWrong 0.6s ease; }
+
+  @keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* Confetti Canvas */
+  #confetti-canvas {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .controls { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .team-card { width: 100%; max-width: 300px; }
+    .header-banner h1 { font-size: 1.8rem; }
+    .hero-name { font-size: 1.8rem; }
+    .image-frame { max-width: 320px; height: 384px; } 
+  }
+  @media (max-width: 480px) {
+    .controls { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+
+<body>
+
+<canvas id="particles"></canvas>
+<canvas id="confetti-canvas"></canvas>
+
+<div class="header-banner">
+  <h1>GUESS THE ANIME HERO</h1>
+</div>
+
+<div id="game-mode">
+  <div class="scoreboard-container">
+    <div class="team-card" id="team-boys">
+      <h2>Boys</h2>
+      <p class="score" id="score-boys">0</p>
+      <div class="progress-bg"><div class="progress-fill" id="progress-boys"></div></div>
+    </div>
+    <div class="team-card" id="team-girls">
+      <h2>Girls</h2>
+      <p class="score" id="score-girls">0</p>
+      <div class="progress-bg"><div class="progress-fill" id="progress-girls"></div></div>
+    </div>
+  </div>
+
+  <div class="game-container" id="game-area">
+    <div class="turn-announcer" id="turn-announcer">
+      BOYS' TURN!
+    </div>
+
+    <div class="image-frame" id="image-border">
+      <img id="hero-img" src="" alt="Hero Image" onerror="this.src='https://placehold.co/400x480/161625/ffffff?text=Image+Missing'">
+    </div>
+    
+    <div class="hero-name" id="hero-name">Loading...</div>
+
+    <div class="controls" id="controls">
+      </div>
+  </div>
+</div>
+
+<div id="feedback-overlay">
+  <div id="feedback-title">CORRECT!</div>
+  <div id="feedback-desc">Naruto Uzumaki is from Naruto!</div>
+</div>
+
+<script>
+// --- Database from JSON Mapping ---
+ const HERO_DATA = [
+  { "hero": "Goku", "anime": "Dragon Ball Z", "image": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Goku_anime_epico.gif?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Naruto Uzumaki", "anime": "Naruto", "image": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Bryon_Mode_Naruto.webp?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Ichigo Kurosaki", "anime": "Bleach", "image": "https://upload.wikimedia.org/wikipedia/commons/6/64/Ichigo_kurosaki_cosplay.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Jotaro Kujo", "anime": "JoJo's Bizarre Adventure", "image": "https://static.wikia.nocookie.net/jjba/images/0/01/JotaroProfile.png/revision/latest?cb=20191125014406" },
+  { "hero": "Izuku Midoriya", "anime": "My Hero Academia", "image": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Izuku_Midoriya_Runway_Costume_Contest_-_Animate%21_x_Nightmare_Weekend_Des_Moines_2024.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Tanjiro Kamado", "anime": "Demon Slayer", "image": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Nezuko_Kamado_x2_and_Tanjiro_Kamado_x1_20211114a.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Gon Freecss", "anime": "Hunter x Hunter", "image": "https://upload.wikimedia.org/wikipedia/commons/2/2f/5_cosplayers_of_Hunter_%C3%97_Hunter_at_PF33_20201107b.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "L Lawliet", "anime": "Death Note", "image": "https://static.wikia.nocookie.net/deathnote/images/7/76/299276L.jpg/revision/latest?cb=20160609084420" },
+  { "hero": "Edward Elric", "anime": "Fullmetal Alchemist Brotherhood", "image": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Pyrkon_2022_-_Fullmetal_Alchemist.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "All Might", "anime": "My Hero Academia", "image": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Cosplay_of_All_Might%2C_Shoto_Todoroki_and_Katsuki_Bakugo_from_My_Hero_Academia_at_Japan_Expo_2023_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Kakashi Hatake", "anime": "Naruto", "image": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Kakashi_Hatake_Cosplay.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Monkey D. Luffy", "anime": "One Piece", "image": "https://upload.wikimedia.org/wikipedia/commons/2/28/Figura_Monkey_D_Luffy_A74007320250206.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Kyojuro Rengoku", "anime": "Demon Slayer", "image": "https://upload.wikimedia.org/wikipedia/commons/6/69/Cosplay_at_Taipei_Expo_Park_%2850998328613%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Yuji Itadori", "anime": "Jujutsu Kaisen", "image": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Japan_Impact_2022_-_Cosplay_groupes_%2852332767002%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Satoru Gojo", "anime": "Jujutsu Kaisen", "image": "https://upload.wikimedia.org/wikipedia/commons/3/32/Sketch_of_gojo_satoru.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Killua Zoldyck", "anime": "Hunter x Hunter", "image": "https://upload.wikimedia.org/wikipedia/commons/6/61/Cosplay_of_Killua_Zoldyck_in_2008_Taipei_International_Book_Exhibition.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Roronoa Zoro", "anime": "One Piece", "image": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Zoro_of_One_Piece_Cosplayer_%28AWA_2010%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Son Gohan", "anime": "Dragon Ball Z", "image": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Preestrena_de_Bola_de_Drac_Super_el_Superheroi_04.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Jiraiya", "anime": "Naruto", "image": "https://upload.wikimedia.org/wikipedia/commons/b/be/Cosplayer_of_Jiraiya%2C_Naruto_at_AWA14_20080920.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Sakura Haruno", "anime": "Naruto", "image": "https://upload.wikimedia.org/wikipedia/commons/6/60/ICDS_cosplayer_of_Sakura_Haruno%2C_Naruto_20150822a.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Roy Mustang", "anime": "Fullmetal Alchemist Brotherhood", "image": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Cosplay_of_Roy_Mustang_at_GalaxyCon_Richmond_2020_%2849666820817%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Vegeta", "anime": "Dragon Ball Super", "image": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Anime_Expo_2011_-_Vegeta_from_Dragonball_Z_%285893314804%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Atsushi Nakajima", "anime": "Bungou Stray Dogs", "image": "https://static.wikia.nocookie.net/bungostraydogs/images/f/f2/Atsushi_Nakajima_%28Manga%29.png/revision/latest?cb=20201228152444" },
+  { "hero": "Akane Tsunemori", "anime": "Psycho-Pass", "image": "https://upload.wikimedia.org/wikipedia/commons/8/86/FF25_DSC2768_17.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Shinji Ikari", "anime": "Neon Genesis Evangelion", "image": "https://upload.wikimedia.org/wikipedia/commons/1/16/Cosplayer_of_Shinji_Ikari_at_Gen_Con_Indy_20080817a.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Ryuko Matoi", "anime": "Kill la Kill", "image": "https://upload.wikimedia.org/wikipedia/commons/5/58/Ryuko_Matoi_2_%2813114444324%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Akame", "anime": "Akame ga Kill!", "image": "https://upload.wikimedia.org/wikipedia/commons/e/e4/1_035_-_Akame_Ga_Kill%21_--_Akame_02_%2836440108190%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Josuke Higashikata", "anime": "JoJo's Bizarre Adventure", "image": "https://upload.wikimedia.org/wikipedia/commons/3/3a/New_York_Comic_Con_2014_-_Gyro_%26_Josuke_%2815511244582%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Alphonse Elric", "anime": "Fullmetal Alchemist Brotherhood", "image": "https://upload.wikimedia.org/wikipedia/commons/0/02/Cosplayers_of_Edward_Elric_and_Alphonse_Elric%2C_Fullmetal_Alchemist_at_CWT42_20160213.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "He-Man", "anime": "Masters of the Universe", "image": "https://upload.wikimedia.org/wikipedia/commons/2/2c/WW_Chicago_2012_-_He-Man_%287791996224%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Sonic", "anime": "Sonic the Hedgehog", "image": "https://upload.wikimedia.org/wikipedia/commons/2/20/WW_Chicago_2011_-_Sonic_the_Hedgehog_%288168360292%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Ryu", "anime": "Street Fighter", "image": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Montreal_Comiccon_2015_-_Ryu_%2818837836633%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Wreck-It Ralph", "anime": "Wreck-It Ralph", "image": "https://upload.wikimedia.org/wikipedia/commons/6/63/Dragon_Con_2013_-_Wreck-It_Ralph_%289697526890%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Judy Hopps", "anime": "Zootopia", "image": "https://upload.wikimedia.org/wikipedia/commons/5/51/Cosplay_of_Judy_Hopps_and_Nick_Wilde_from_Zootopia_at_Anime_Expo_2016_%2828086759383%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Invincible", "anime": "Invincible", "image": "https://upload.wikimedia.org/wikipedia/commons/2/25/C2E2_2013_-_Invincible_%288701565565%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Mario", "anime": "Super Mario Bros.", "image": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Mario_and_Luigi.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Denji", "anime": "Chainsaw Man", "image": "https://upload.wikimedia.org/wikipedia/commons/9/90/Cosplay_of_Denji_from_Chainsaw_Man_at_Made_In_Asia_2023.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Natsu Dragneel", "anime": "Fairy Tail", "image": "https://upload.wikimedia.org/wikipedia/commons/f/f8/Cosplayer_of_Natsu_Dragneel%2C_Fairy_Tail_at_CWT39_20150228d.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Saitama", "anime": "One Punch Man", "image": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Animethon_23_-_2016_%2828836795015%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Ash Ketchum", "anime": "Pokemon", "image": "https://upload.wikimedia.org/wikipedia/commons/5/51/Ash_Ketchum_%26_Pikachu_cosplayers_%2823301310770%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+  { "hero": "Sailor Moon", "anime": "Sailor Moon", "image": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Sailor_Moon_Cosplayer_at_Dragon_Con_2014_-_15141611365.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original" },
+];
+
+// Extract unique animes for wrong answers
+const ALL_ANIMES = [...new Set(HERO_DATA.map(h => h.anime))];
+
+// --- Game State ---
+let currentTurn = 'boys'; 
+let scores = { boys: 0, girls: 0 };
+let currentHeroIndex = 0;
+let shuffledHeroes = [];
+const WIN_SCORE = 100;
+
+// --- DOM Elements ---
+const elBoysCard = document.getElementById('team-boys');
+const elGirlsCard = document.getElementById('team-girls');
+const elTurnAnnouncer = document.getElementById('turn-announcer');
+const elHeroImg = document.getElementById('hero-img');
+const elHeroName = document.getElementById('hero-name');
+const elControls = document.getElementById('controls');
+const elImageBorder = document.getElementById('image-border');
+const feedbackOverlay = document.getElementById('feedback-overlay');
+const feedbackTitle = document.getElementById('feedback-title');
+const feedbackDesc = document.getElementById('feedback-desc');
+
+// --- Audio System ---
+function playSound(type){
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gainNode = ctx.createGain();
+  
+  osc.connect(gainNode);
+  gainNode.connect(ctx.destination);
+  
+  if(type === "correct"){
+    osc.type = "square"; 
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.2);
+    gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+  } else if (type === "wrong") {
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.4);
+    gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+  } else if (type === "win") {
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(523.25, ctx.currentTime); 
+    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); 
+    osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); 
+    osc.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.3); 
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+    osc.start();
+    osc.stop(ctx.currentTime + 1.5);
+  }
+}
+
+// --- Utilities ---
+function shuffle(array){
+  return array.sort(()=>Math.random()-0.5);
+}
+
+function getRandomWrongAnimes(correctAnime, count = 5) { 
+  let wrongAnimes = ALL_ANIMES.filter(a => a !== correctAnime);
+  wrongAnimes = shuffle(wrongAnimes);
+  return wrongAnimes.slice(0, count);
+}
+
+// --- Game Logic ---
+function initGame() {
+  shuffledHeroes = shuffle([...HERO_DATA]);
+  currentHeroIndex = 0;
+  updateTurnUI();
+  loadQuestion();
+  initParticles();
+}
+
+function loadQuestion() {
+  if (currentHeroIndex >= shuffledHeroes.length) {
+    shuffledHeroes = shuffle([...HERO_DATA]);
+    currentHeroIndex = 0;
+  }
+  
+  const heroObj = shuffledHeroes[currentHeroIndex];
+  elHeroImg.src = heroObj.image;
+  elHeroName.textContent = heroObj.hero;
+  
+  // Generate Answers (1 correct + 5 wrong = 6 total options)
+  const correctAnime = heroObj.anime;
+  const wrongAnimes = getRandomWrongAnimes(correctAnime, 5); 
+  let options = shuffle([correctAnime, ...wrongAnimes]);
+
+  elControls.innerHTML = '';
+  options.forEach(option => {
+    const btn = document.createElement('button');
+    btn.className = 'action-btn';
+    btn.textContent = option;
+    btn.onclick = () => makeGuess(option, btn);
+    elControls.appendChild(btn);
+  });
+}
+
+function updateTurnUI() {
+  elImageBorder.className = 'image-frame';
+  if (currentTurn === 'boys') {
+    elBoysCard.classList.add('active-turn');
+    elGirlsCard.classList.remove('active-turn');
+    elTurnAnnouncer.textContent = "BOYS' TURN!";
+    elTurnAnnouncer.style.backgroundColor = "var(--boys-color)";
+    elTurnAnnouncer.style.color = "#000";
+    elImageBorder.classList.add('active-boys-frame');
+  } else {
+    elGirlsCard.classList.add('active-turn');
+    elBoysCard.classList.remove('active-turn');
+    elTurnAnnouncer.textContent = "GIRLS' TURN!";
+    elTurnAnnouncer.style.backgroundColor = "var(--girls-color)";
+    elTurnAnnouncer.style.color = "#fff";
+    elImageBorder.classList.add('active-girls-frame');
+  }
+}
+
+function showFeedback(isCorrect, heroName, correctAnime) {
+  feedbackOverlay.style.display = 'flex';
+  feedbackTitle.className = '';
+  
+  if (isCorrect) {
+    feedbackTitle.textContent = "CORRECT!";
+    feedbackTitle.classList.add('text-correct');
+    feedbackDesc.innerHTML = `<span style="color:var(--neon-blue);font-weight:bold;">${heroName}</span> is from <span style="color:var(--neon-green);font-weight:bold;">${correctAnime}</span>!`;
+  } else {
+    feedbackTitle.textContent = "WRONG! 67";
+    feedbackTitle.classList.add('text-wrong');
+    feedbackDesc.innerHTML = `<span style="color:var(--neon-blue);font-weight:bold;">${heroName}</span> is actually from <span style="color:var(--neon-red);font-weight:bold;">${correctAnime}</span>.`;
+  }
+
+  // Force reflow for animation restart
+  feedbackTitle.style.animation = 'none';
+  feedbackTitle.offsetHeight; 
+  feedbackTitle.style.animation = null;
+
+  feedbackDesc.style.animation = 'none';
+  feedbackDesc.offsetHeight;
+  feedbackDesc.style.animation = null;
+}
+
+function makeGuess(guess, btnElement) {
+  const buttons = document.querySelectorAll('.action-btn');
+  buttons.forEach(btn => btn.disabled = true);
+
+  const heroObj = shuffledHeroes[currentHeroIndex];
+  const isCorrect = (guess === heroObj.anime);
+
+  document.body.classList.remove('flash-correct', 'flash-wrong');
+  void document.body.offsetWidth; 
+
+  if (isCorrect) {
+    playSound('correct');
+    document.body.classList.add('flash-correct');
+    btnElement.classList.add('btn-correct');
+    scores[currentTurn] += 7;
+    
+    // Update Score & Progress
+    document.getElementById(`score-${currentTurn}`).textContent = scores[currentTurn];
+    const progressPercent = Math.min((scores[currentTurn] / WIN_SCORE) * 100, 100);
+    document.getElementById(`progress-${currentTurn}`).style.width = `${progressPercent}%`;
+
+    showFeedback(true, heroObj.hero, heroObj.anime);
+
+    if (scores[currentTurn] >= WIN_SCORE) {
+      setTimeout(() => endGame(currentTurn), 1500); 
+      return; 
+    }
+
+  } else {
+    playSound('wrong');
+    document.body.classList.add('flash-wrong');
+    btnElement.classList.add('btn-wrong');
+    
+    // Find and highlight correct button
+    buttons.forEach(btn => {
+      if(btn.textContent === heroObj.anime) btn.classList.add('btn-correct');
+    });
+
+    showFeedback(false, heroObj.hero, heroObj.anime);
+  }
+
+  // Next Turn Logic
+  setTimeout(() => {
+    feedbackOverlay.style.display = 'none';
+    currentTurn = (currentTurn === 'boys') ? 'girls' : 'boys';
+    currentHeroIndex++;
+    updateTurnUI();
+    loadQuestion();
+  }, 2500); 
+}
+
+function endGame(winningTeam) {
+  playSound('win');
+  startConfetti();
+  feedbackOverlay.style.display = 'none';
+  
+  const gameArea = document.getElementById('game-area');
+  const teamName = winningTeam === 'boys' ? 'BOYS' : 'GIRLS';
+  const teamColor = winningTeam === 'boys' ? 'var(--boys-color)' : 'var(--girls-color)';
+
+  gameArea.innerHTML = `
+    <div style="text-align: center; animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+      <div style="font-size: 6rem; margin-bottom: 10px; text-shadow: 0 0 20px #fff;">🏆</div>
+      <h1 style="font-family: 'Orbitron', sans-serif; font-size: 4rem; color: ${teamColor}; margin: 0; text-shadow: 0 0 20px ${teamColor};">${teamName} WIN!</h1>
+      <p style="font-size: 1.5rem; color: #ccc; margin-top:10px;">ULTIMATE ANIME EXPERTS!</p>
+      <button class="action-btn" onclick="location.reload()" style="margin-top: 30px; padding: 20px 40px; font-size: 1.5rem; background: ${teamColor}; color: #000; font-weight: 900;">PLAY AGAIN</button>
+    </div>
+  `;
+}
+
+// --- Background Particles ---
+function initParticles() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particlesArray = [];
+  const colors = ['#00f3ff', '#ff00ea', '#ffffff'];
+
+  for (let i = 0; i < 50; i++) {
+    particlesArray.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 1,
+      speedY: Math.random() * 1 - 0.5,
+      speedX: Math.random() * 1 - 0.5,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < particlesArray.length; i++) {
+      let p = particlesArray[i];
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      
+      p.x += p.speedX;
+      p.y += p.speedY;
+
+      if (p.x < 0) p.x = canvas.width;
+      if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height;
+      if (p.y > canvas.height) p.y = 0;
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// --- Confetti System ---
+function startConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const confettiCount = 200;
+  const confetti = [];
+  const colors = ['#00f3ff', '#ff00ea', '#39ff14', '#ff073a', '#ffffff', '#ffd700'];
+
+  for (let i = 0; i < confettiCount; i++) {
+    confetti.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 10 + 5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speedY: Math.random() * 3 + 2,
+      speedX: Math.random() * 2 - 1,
+      rot: Math.random() * 360,
+      rotSpeed: Math.random() * 10 - 5
+    });
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let active = false;
+
+    confetti.forEach(c => {
+      if (c.y < canvas.height) {
+        active = true;
+        c.y += c.speedY;
+        c.x += c.speedX;
+        c.rot += c.rotSpeed;
+
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate((c.rot * Math.PI) / 180);
+        ctx.fillStyle = c.color;
+        ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+        ctx.restore();
+      }
+    });
+
+    if (active) requestAnimationFrame(render);
+  }
+  render();
+}
+
+window.addEventListener('resize', () => {
+  document.getElementById('particles').width = window.innerWidth;
+  document.getElementById('particles').height = window.innerHeight;
+  document.getElementById('confetti-canvas').width = window.innerWidth;
+  document.getElementById('confetti-canvas').height = window.innerHeight;
+});
+
+// Start Game
+initGame();
+
+</script>
+</body>
+</html>
